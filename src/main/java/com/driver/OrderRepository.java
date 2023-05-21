@@ -1,133 +1,97 @@
 package com.driver;
 
-import net.bytebuddy.dynamic.DynamicType;
 import org.springframework.stereotype.Repository;
 
-import java.awt.font.OpenType;
 import java.util.*;
 
 @Repository
 public class OrderRepository {
-
-    private Map<String,Order> orderMap = new HashMap<>();
-    private Map<String,DeliveryPartner> deliveryPartnerMap = new HashMap<>();
-    private Map<String,String> orderToPartnerMap = new HashMap<>();
-    private Map<String, List<String>> partnerToOrderMap = new HashMap<>();
+    private static Map<String,Order> orderMap=new HashMap<>();
+    private static Map<String,DeliveryPartner> partnerMap=new HashMap<>();
 
     public OrderRepository() {
-
-        this.orderMap = new HashMap<>();
-        this.deliveryPartnerMap = new HashMap<>();
-        this.orderToPartnerMap = new HashMap<>();
-        this.partnerToOrderMap = new HashMap<>();
     }
+
+    public OrderRepository(Map<String, String> orderPartnerMap, Map<String, ArrayList<String>> partnerOrdersMap) {
+        this.orderPartnerMap = orderPartnerMap;
+        this.partnerOrdersMap = partnerOrdersMap;
+    }
+
+    private  Map<String,String> orderPartnerMap=new HashMap<>();
+
+    private  Map<String, ArrayList<String>> partnerOrdersMap=new HashMap<>();
+
+    public static Optional<DeliveryPartner> getPartnerId(String partnerId) {
+        if(partnerMap.containsKey(partnerId)){
+            return Optional.of(partnerMap.get(partnerId));
+        }
+        return Optional.empty();
+    }
+    public static Optional<Order> getOrderById(String orderId) {
+        if(orderMap.containsKey(orderId)){
+            return Optional.of(orderMap.get(orderId));
+        }
+        return Optional.empty();
+    }
+
 
     public void addOrder(Order order) {
-
         orderMap.put(order.getId(),order);
-        return;
     }
 
-    public Optional<Order> getOrder(String id){
+    public void addPartner(DeliveryPartner partnerId) {
 
-        if(orderMap.containsKey(id)){
-            return Optional.of(orderMap.get(id));
-        }
-        return Optional.empty();
-    }
-
-    public void addDeliveryPartner(DeliveryPartner deliveryPartner) {
-
-        deliveryPartnerMap.put(deliveryPartner.getId(), deliveryPartner);
-        return;
-    }
-
-    public Optional<DeliveryPartner> getDeliveryPartner(String partnerId) {
-
-        if(deliveryPartnerMap.containsKey(partnerId)){
-            return Optional.of(deliveryPartnerMap.get(partnerId));
-        }
-        return Optional.empty();
+        partnerMap.put(partnerId.getId(), partnerId);
     }
 
     public void addOrderPartnerPair(String orderId, String partnerId) {
-        orderToPartnerMap.put(orderId,partnerId);
-        List<String> oldOrders;
-        if(partnerToOrderMap.containsKey(partnerId))
-            oldOrders = partnerToOrderMap.get(partnerId);
-        else
-            oldOrders = new ArrayList<>();
-        oldOrders.add(orderId);
-        partnerToOrderMap.put(partnerId,oldOrders);
-        return;
-    }
-
-    public Optional<Integer> getOrderCountByPartnerId(String partnerId) {
-
-        if(partnerToOrderMap.containsKey(partnerId))
-            return Optional.of(partnerToOrderMap.get(partnerId).size());
-
-        return Optional.empty();
-    }
-
-    public Optional<List<String>> getOrdersByPartnerId(String partnerId) {
-
-        if(partnerToOrderMap.containsKey(partnerId)){
-            return Optional.of(partnerToOrderMap.get(partnerId));
+        orderPartnerMap.put(orderId,partnerId);
+        ArrayList<String> updatedOrders = new ArrayList<>();
+        if (partnerOrdersMap.containsKey(partnerId)) {
+            updatedOrders = partnerOrdersMap.get(partnerId);
         }
-
-        return Optional.empty();
+        updatedOrders.add(orderId);
+        partnerOrdersMap.put(partnerId, updatedOrders);
     }
 
-    public Optional<List<String>> getAllOrders() {
-
-        if(orderMap.size() == 0) return Optional.of(new ArrayList<>());
-        return Optional.of(new ArrayList<>(orderMap.keySet()));
+    public Map<String, String> getallorderpartnerMappings() {
+        return orderPartnerMap;
     }
 
-    public boolean isAssigned(String order) {
-
-        if(orderToPartnerMap.containsKey(order))
-            return true;
-        return false;
+    public List<String> getOrdersByPartnerId(String partnerId) {
+        return partnerOrdersMap.get(partnerId);
     }
 
-    public Optional<List<String>> getAssignedOrders() {
-
-        if(orderToPartnerMap.size() == 0) return Optional.of(new ArrayList<>());
-        return Optional.of(new ArrayList<>(orderToPartnerMap.keySet()));
+    public List<String> getAllOrders() {
+        return new ArrayList<>(orderMap.keySet());
     }
 
-    public void deletePartner(String partnerId) {
-
-        deliveryPartnerMap.remove(partnerId);
-        partnerToOrderMap.remove(partnerId);
-        return;
+    public List<String> getAssingnedOrders() {
+        return new ArrayList (orderPartnerMap.keySet());
     }
 
-    public void removeOrderPartnerMapping(String id) {
 
-        orderToPartnerMap.remove(id);
-        return;
+    public void deletePartnerbyId(String partnerId) {
+        partnerMap.remove(partnerId);
+        partnerOrdersMap.remove(partnerId);
+    }
+
+    public void removePartnerOrderMapping(String orderId) {
+        orderPartnerMap.remove(orderId);
     }
 
     public void deleteOrder(String orderId) {
-
         orderMap.remove(orderId);
-        orderToPartnerMap.remove(orderId);
-        return;
+        orderPartnerMap.remove(orderId);
     }
 
     public String getPartnerForOrder(String orderId) {
-
-        return orderToPartnerMap.get(orderId);
+        return orderPartnerMap.get(orderId);
     }
 
     public void removeOrderForPartner(String partnerId, String orderId) {
-
-        List<String> orders = partnerToOrderMap.get(partnerId);
-        orders.remove(orderId);
-        partnerToOrderMap.put(partnerId,orders);
-        return;
+        ArrayList<String> orderIds = partnerOrdersMap.get(partnerId);
+        orderIds.remove(orderId);
+        partnerOrdersMap.put(partnerId, orderIds);
     }
 }

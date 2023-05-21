@@ -1,10 +1,5 @@
 package com.driver;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
 public class DeliveryPartner {
 
     private String id;
@@ -17,6 +12,21 @@ public class DeliveryPartner {
 
     public String getId() {
         return id;
+    }
+
+    public DeliveryPartner() {
+
+    }
+    public void setNumberOfOrders(int numberOfOrders) {
+        this.numberOfOrders = numberOfOrders;
+    }
+    public DeliveryPartner(String id, int numberOfOrders) {
+        this.id = id;
+        this.numberOfOrders = numberOfOrders;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Integer getNumberOfOrders(){
